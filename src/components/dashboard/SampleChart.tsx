@@ -38,7 +38,7 @@ export function SampleChart({ samples }: { samples: Sample[] }) {
             new Date(value).toLocaleTimeString("en-US", { hour12: false })
           }
         />
-        <YAxis type="number" domain={[0, 16000]} />
+        <YAxis type="number" />
         <CartesianGrid vertical={true} />
         <Line
           type={"monotone"}
