@@ -12,7 +12,7 @@ import { formatDistanceToNow } from "date-fns";
 import { CheckCircle, X } from "lucide-react";
 import { useState } from "react";
 import { CommandHistoryEntry } from "@/lib/yamcs/types/archive";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Card, CardContent } from "./ui/card";
 import { cn } from "@/lib/utils";
 import { Label } from "./ui/label";
 import {
@@ -57,9 +57,21 @@ export function Commanding() {
             selectedCommand ? "grid-cols-[3fr_1fr]" : "",
           )}
         >
-          <Table>
+          <div className="col-span-full flex flex-row justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-semibold tracking-tight">
+                Commands
+              </h2>
+              <span className="text-sm text-muted-foreground">
+                View previous commands and issue new ones
+              </span>
+            </div>
+
+            <Button variant="default">Issue Command</Button>
+          </div>
+          <Table className="rounded-md overflow-clip">
             <TableHeader>
-              <TableRow>
+              <TableRow className="bg-[#FAFBFC] dark:bg-[#0D1525]">
                 <TableHead className="">ID</TableHead>
                 <TableHead>Time</TableHead>
                 {!selectedCommand && <TableHead></TableHead>}
@@ -77,7 +89,12 @@ export function Commanding() {
               {data.entry.map((command) => (
                 <TableRow
                   key={command.id}
-                  className="cursor-pointer text-xs"
+                  className={cn(
+                    "cursor-pointer text-xs",
+                    command.id === selectedCommand?.id
+                      ? "bg-[#FAFBFC] dark:bg-[#0D1525]"
+                      : "",
+                  )}
                   onClick={() => {
                     setSelectedCommand(command);
                   }}
@@ -128,224 +145,204 @@ export function Commanding() {
           </Table>
           {selectedCommand && (
             <TooltipProvider>
-              <div className="relative">
-                <Button
-                  className="absolute top-5 right-5"
-                  size={"icon"}
-                  variant={"ghost"}
-                  onClick={() => setSelectedCommand(undefined)}
-                >
-                  <X className="w-4 h-4"></X>
-                </Button>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Command Detail</CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex flex-col gap-6">
-                    <div className="grid w-full max-w-sm items-center gap-1.5">
-                      <Label>ID</Label>
-                      <Tooltip delayDuration={100}>
-                        <TooltipTrigger
-                          onClick={() => {
-                            navigator.clipboard.writeText(selectedCommand.id);
-                          }}
-                          className="cursor-pointer font-mono text-xs border-border border p-2 rounded-sm text-left"
-                        >
-                          {selectedCommand.id}
-                        </TooltipTrigger>
-                        <TooltipContent>Copy to Clipboard</TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <div className="grid w-full max-w-sm items-center gap-1.5">
-                      <Label>Command</Label>
-                      <Tooltip>
-                        <TooltipTrigger
-                          onClick={() => {
-                            navigator.clipboard.writeText(
-                              selectedCommand.commandName,
-                            );
-                          }}
-                          className="cursor-pointer font-mono text-xs border-border border p-2 rounded-sm text-left"
-                        >
-                          {selectedCommand.commandName}
-                        </TooltipTrigger>
-                        <TooltipContent>Copy to Clipboard</TooltipContent>
-                      </Tooltip>
-                    </div>
-                    {(() => {
-                      const binary = selectedCommand.attr.find(
-                        (a) => a.name === "unprocessedBinary",
-                      );
-                      if (binary) {
-                        const decimal = base64ToBinary(
-                          binary.value.binaryValue,
-                        );
-                        return (
-                          <div className="grid w-full max-w-sm items-center gap-1.5">
-                            <Label>Unprocessed Binary</Label>
-                            <Tooltip>
-                              <TooltipTrigger
-                                onClick={() => {
-                                  navigator.clipboard.writeText(decimal);
-                                }}
-                                className="cursor-pointer font-mono text-xs border-border border p-2 rounded-sm text-left"
-                              >
-                                {decimal}
-                              </TooltipTrigger>
-                              <TooltipContent>Copy to Clipboard</TooltipContent>
-                            </Tooltip>
-                          </div>
-                        );
-                      }
-                    })()}
-                    {(() => {
-                      const binary = selectedCommand.attr.find(
-                        (a) => a.name === "binary",
-                      );
-                      if (binary) {
-                        const decimal = base64ToBinary(
-                          binary.value.binaryValue,
-                        );
-                        return (
-                          <div className="grid w-full max-w-sm items-center gap-1.5">
-                            <Label>Processed Binary</Label>
-                            <Tooltip>
-                              <TooltipTrigger
-                                onClick={() => {
-                                  navigator.clipboard.writeText(decimal);
-                                }}
-                                className="cursor-pointer font-mono text-xs border-border border p-2 rounded-sm text-left"
-                              >
-                                {decimal}
-                              </TooltipTrigger>
-                              <TooltipContent>Copy to Clipboard</TooltipContent>
-                            </Tooltip>
-                          </div>
-                        );
-                      }
-                    })()}
-
-                    <Separator />
-
-                    <div className="grid w-full max-w-sm items-center gap-1.5">
-                      <Label>Generation Time</Label>
-                      <Tooltip>
-                        <TooltipTrigger
-                          onClick={() => {
-                            navigator.clipboard.writeText(
-                              selectedCommand.generationTime,
-                            );
-                          }}
-                          className="cursor-pointer font-mono text-xs border-border border p-2 rounded-sm text-left"
-                        >
-                          {selectedCommand.generationTime}
-                        </TooltipTrigger>
-                        <TooltipContent>Copy to Clipboard</TooltipContent>
-                      </Tooltip>
-                    </div>
-                    {(() => {
-                      const username = selectedCommand.attr.find(
-                        (a) => a.name === "username",
-                      );
-                      if (username) {
-                        return (
-                          <div className="grid w-full max-w-sm items-center gap-1.5">
-                            <Label>Issuer</Label>
-                            <Tooltip>
-                              <TooltipTrigger
-                                onClick={() => {
-                                  navigator.clipboard.writeText(
-                                    username.value.stringValue,
-                                  );
-                                }}
-                                className="cursor-pointer font-mono text-xs border-border border p-2 rounded-sm text-left"
-                              >
-                                {username.value.stringValue}@
-                                {selectedCommand.origin}
-                              </TooltipTrigger>
-                              <TooltipContent>Copy to Clipboard</TooltipContent>
-                            </Tooltip>
-                          </div>
-                        );
-                      }
-                    })()}
-                    {(() => {
-                      const queue = selectedCommand.attr.find(
-                        (a) => a.name === "queue",
-                      );
-                      if (queue) {
-                        return (
-                          <div className="grid w-full max-w-sm items-center gap-1.5">
-                            <Label>Queue</Label>
-                            <Tooltip>
-                              <TooltipTrigger
-                                onClick={() => {
-                                  navigator.clipboard.writeText(
-                                    queue.value.stringValue,
-                                  );
-                                }}
-                                className="cursor-pointer font-mono text-xs border-border border p-2 rounded-sm text-left"
-                              >
-                                {queue.value.stringValue}
-                              </TooltipTrigger>
-                              <TooltipContent>Copy to Clipboard</TooltipContent>
-                            </Tooltip>
-                          </div>
-                        );
-                      }
-                    })()}
-
-                    <Separator />
-
-                    {(() => {
-                      const acks = selectedCommand.attr.filter(
-                        (a) =>
-                          a.name.startsWith("Acknowledge_") &&
-                          a.value.type === "STRING",
-                      );
-
+              <Card className="bg-[#FAFBFC] dark:bg-[#0D1525]">
+                <CardContent className="flex flex-col gap-6 pt-6">
+                  <div className="flex flex-row justify-between items-center">
+                    <h3 className="text-2xl font-semibold leading-none tracking-tight">
+                      Command Detail
+                    </h3>
+                    <Button
+                      size={"icon"}
+                      variant={"ghost"}
+                      onClick={() => setSelectedCommand(undefined)}
+                    >
+                      <X className="w-4 h-4"></X>
+                    </Button>
+                  </div>
+                  <div className="grid w-full max-w-sm items-center gap-1.5">
+                    <Label>ID</Label>
+                    <Tooltip delayDuration={100}>
+                      <TooltipTrigger
+                        onClick={() => {
+                          navigator.clipboard.writeText(selectedCommand.id);
+                        }}
+                        className="cursor-pointer font-mono text-xs border-border border p-2 rounded-sm text-left"
+                      >
+                        {selectedCommand.id}
+                      </TooltipTrigger>
+                      <TooltipContent>Copy to Clipboard</TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <div className="grid w-full max-w-sm items-center gap-1.5">
+                    <Label>Command</Label>
+                    <Tooltip>
+                      <TooltipTrigger
+                        onClick={() => {
+                          navigator.clipboard.writeText(
+                            selectedCommand.commandName,
+                          );
+                        }}
+                        className="cursor-pointer font-mono text-xs border-border border p-2 rounded-sm text-left"
+                      >
+                        {selectedCommand.commandName}
+                      </TooltipTrigger>
+                      <TooltipContent>Copy to Clipboard</TooltipContent>
+                    </Tooltip>
+                  </div>
+                  {(() => {
+                    const binary = selectedCommand.attr.find(
+                      (a) => a.name === "unprocessedBinary",
+                    );
+                    if (binary) {
+                      const decimal = base64ToBinary(binary.value.binaryValue);
                       return (
                         <div className="grid w-full max-w-sm items-center gap-1.5">
-                          <Label>YAMCS Acknowledgments</Label>
-                          <ul className="space-y-2 mt-2">
-                            {acks.map((ack) => (
-                              <li className="grid gap-2 items-center grid-cols-[0.75rem_1fr_1fr_1fr] text-xs font-mono">
-                                {ack.value.stringValue === "OK" ? (
-                                  <CheckCircle className="w-3 h-3 text-green-500" />
-                                ) : (
-                                  <span>-</span>
-                                )}
-                                <span className="w-full">
-                                  {ack.name.split("_")[1]}
-                                </span>
-                                <span className="text-center">
-                                  {ack.value.stringValue}
-                                </span>
-                                {selectedCommand.attr.find(
-                                  (a) =>
-                                    a.name ===
-                                    `Acknowledge_${ack.name.split("_")[1]}_Time`,
-                                ) && (
-                                  <Tooltip>
-                                    <TooltipTrigger
-                                      onClick={() => {
-                                        navigator.clipboard.writeText(
-                                          new Date(
-                                            parseInt(
-                                              selectedCommand.attr.filter(
-                                                (a) =>
-                                                  a.name ===
-                                                  `Acknowledge_${ack.name.split("_")[1]}_Time`,
-                                              )[0].value.timestampValue,
-                                            ),
-                                          ).toISOString(),
-                                        );
-                                      }}
-                                    >
-                                      {timeDifference(
-                                        new Date(
-                                          selectedCommand.generationTime,
-                                        ),
+                          <Label>Unprocessed Binary</Label>
+                          <Tooltip>
+                            <TooltipTrigger
+                              onClick={() => {
+                                navigator.clipboard.writeText(decimal);
+                              }}
+                              className="cursor-pointer font-mono text-xs border-border border p-2 rounded-sm text-left"
+                            >
+                              {decimal}
+                            </TooltipTrigger>
+                            <TooltipContent>Copy to Clipboard</TooltipContent>
+                          </Tooltip>
+                        </div>
+                      );
+                    }
+                  })()}
+                  {(() => {
+                    const binary = selectedCommand.attr.find(
+                      (a) => a.name === "binary",
+                    );
+                    if (binary) {
+                      const decimal = base64ToBinary(binary.value.binaryValue);
+                      return (
+                        <div className="grid w-full max-w-sm items-center gap-1.5">
+                          <Label>Processed Binary</Label>
+                          <Tooltip>
+                            <TooltipTrigger
+                              onClick={() => {
+                                navigator.clipboard.writeText(decimal);
+                              }}
+                              className="cursor-pointer font-mono text-xs border-border border p-2 rounded-sm text-left"
+                            >
+                              {decimal}
+                            </TooltipTrigger>
+                            <TooltipContent>Copy to Clipboard</TooltipContent>
+                          </Tooltip>
+                        </div>
+                      );
+                    }
+                  })()}
+
+                  <Separator />
+
+                  <div className="grid w-full max-w-sm items-center gap-1.5">
+                    <Label>Generation Time</Label>
+                    <Tooltip>
+                      <TooltipTrigger
+                        onClick={() => {
+                          navigator.clipboard.writeText(
+                            selectedCommand.generationTime,
+                          );
+                        }}
+                        className="cursor-pointer font-mono text-xs border-border border p-2 rounded-sm text-left"
+                      >
+                        {selectedCommand.generationTime}
+                      </TooltipTrigger>
+                      <TooltipContent>Copy to Clipboard</TooltipContent>
+                    </Tooltip>
+                  </div>
+                  {(() => {
+                    const username = selectedCommand.attr.find(
+                      (a) => a.name === "username",
+                    );
+                    if (username) {
+                      return (
+                        <div className="grid w-full max-w-sm items-center gap-1.5">
+                          <Label>Issuer</Label>
+                          <Tooltip>
+                            <TooltipTrigger
+                              onClick={() => {
+                                navigator.clipboard.writeText(
+                                  username.value.stringValue,
+                                );
+                              }}
+                              className="cursor-pointer font-mono text-xs border-border border p-2 rounded-sm text-left"
+                            >
+                              {username.value.stringValue}@
+                              {selectedCommand.origin}
+                            </TooltipTrigger>
+                            <TooltipContent>Copy to Clipboard</TooltipContent>
+                          </Tooltip>
+                        </div>
+                      );
+                    }
+                  })()}
+                  {(() => {
+                    const queue = selectedCommand.attr.find(
+                      (a) => a.name === "queue",
+                    );
+                    if (queue) {
+                      return (
+                        <div className="grid w-full max-w-sm items-center gap-1.5">
+                          <Label>Queue</Label>
+                          <Tooltip>
+                            <TooltipTrigger
+                              onClick={() => {
+                                navigator.clipboard.writeText(
+                                  queue.value.stringValue,
+                                );
+                              }}
+                              className="cursor-pointer font-mono text-xs border-border border p-2 rounded-sm text-left"
+                            >
+                              {queue.value.stringValue}
+                            </TooltipTrigger>
+                            <TooltipContent>Copy to Clipboard</TooltipContent>
+                          </Tooltip>
+                        </div>
+                      );
+                    }
+                  })()}
+
+                  <Separator />
+
+                  {(() => {
+                    const acks = selectedCommand.attr.filter(
+                      (a) =>
+                        a.name.startsWith("Acknowledge_") &&
+                        a.value.type === "STRING",
+                    );
+
+                    return (
+                      <div className="grid w-full max-w-sm items-center gap-1.5">
+                        <Label>YAMCS Acknowledgments</Label>
+                        <ul className="space-y-2 mt-2">
+                          {acks.map((ack) => (
+                            <li className="grid gap-2 items-center grid-cols-[0.75rem_1fr_1fr_1fr] text-xs font-mono">
+                              {ack.value.stringValue === "OK" ? (
+                                <CheckCircle className="w-3 h-3 text-green-500" />
+                              ) : (
+                                <span>-</span>
+                              )}
+                              <span className="w-full">
+                                {ack.name.split("_")[1]}
+                              </span>
+                              <span className="text-center">
+                                {ack.value.stringValue}
+                              </span>
+                              {selectedCommand.attr.find(
+                                (a) =>
+                                  a.name ===
+                                  `Acknowledge_${ack.name.split("_")[1]}_Time`,
+                              ) && (
+                                <Tooltip>
+                                  <TooltipTrigger
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(
                                         new Date(
                                           parseInt(
                                             selectedCommand.attr.filter(
@@ -354,11 +351,13 @@ export function Commanding() {
                                                 `Acknowledge_${ack.name.split("_")[1]}_Time`,
                                             )[0].value.timestampValue,
                                           ),
-                                        ),
-                                      )}
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      {new Date(
+                                        ).toISOString(),
+                                      );
+                                    }}
+                                  >
+                                    {timeDifference(
+                                      new Date(selectedCommand.generationTime),
+                                      new Date(
                                         parseInt(
                                           selectedCommand.attr.filter(
                                             (a) =>
@@ -366,19 +365,30 @@ export function Commanding() {
                                               `Acknowledge_${ack.name.split("_")[1]}_Time`,
                                           )[0].value.timestampValue,
                                         ),
-                                      ).toISOString()}
-                                    </TooltipContent>
-                                  </Tooltip>
-                                )}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      );
-                    })()}
-                  </CardContent>
-                </Card>
-              </div>
+                                      ),
+                                    )}
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    {new Date(
+                                      parseInt(
+                                        selectedCommand.attr.filter(
+                                          (a) =>
+                                            a.name ===
+                                            `Acknowledge_${ack.name.split("_")[1]}_Time`,
+                                        )[0].value.timestampValue,
+                                      ),
+                                    ).toISOString()}
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  })()}
+                </CardContent>
+              </Card>
             </TooltipProvider>
           )}
           <pre>{JSON.stringify(data.entry[7], undefined, 2)}</pre>
